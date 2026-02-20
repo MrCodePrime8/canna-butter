@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CannaButter Calculator</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark:   #1b5e20;
+      --green-mid:    #2e7d32;
+      --green-light:  #43a047;
+      --green-pale:   #e8f5e9;
+      --gold:         #f9a825;
+      --text:         #212121;
+      --text-light:   #616161;
+      --border:       #c8e6c9;
+      --shadow:       0 4px 20px rgba(0,0,0,.12);
+      --radius:       12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+      min-height: 100vh;
+      color: var(--text);
+      padding: 24px 16px 48px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header .leaf { font-size: 2.8rem; }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      line-height: 1.2;
+      margin: 8px 0 6px;
+    }
+
+    header p {
+      color: var(--text-light);
+      font-size: .95rem;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px 28px 32px;
+      max-width: 640px;
+      margin: 0 auto 24px;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--green-mid);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Mode Tabs ── */
+    .tabs {
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--green-light);
+      margin-bottom: 28px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 11px 8px;
+      font-size: .88rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      background: #fff;
+      color: var(--green-mid);
+      border: none;
+      transition: background .2s, color .2s;
+      line-height: 1.3;
+    }
+
+    .tab.active {
+      background: var(--green-mid);
+      color: #fff;
+    }
+
+    /* ── Form ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px 20px;
+    }
+
+    @media (max-width: 480px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 11px 46px 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      color: var(--text);
+      appearance: textfield;
+      -moz-appearance: textfield;
+      transition: border-color .2s;
+      background: #fafafa;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--green-light);
+      background: #fff;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .unit {
+      position: absolute;
+      right: 12px;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-light);
+      pointer-events: none;
+    }
+
+    /* ── Efficiency Slider ── */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      grid-column: 1 / -1;
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--green-mid);
+      height: 6px;
+      cursor: pointer;
+    }
+
+    .slider-val {
+      min-width: 40px;
+      text-align: right;
+      font-weight: 700;
+      color: var(--green-mid);
+      font-size: .95rem;
+    }
+
+    /* ── Calculate Button ── */
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-light));
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .4px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+
+    .btn:hover { opacity: .92; }
+    .btn:active { transform: scale(.98); }
+
+    /* ── Results ── */
+    #results {
+      display: none;
+      animation: fadeIn .35s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 480px) {
+      .result-grid { grid-template-columns: 1fr; }
+    }
+
+    .result-item {
+      background: var(--green-pale);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .result-item.highlight {
+      background: var(--green-mid);
+      border-color: var(--green-mid);
+      color: #fff;
+    }
+
+    .result-label {
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      opacity: .8;
+      margin-bottom: 4px;
+    }
+
+    .result-value {
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .result-sub {
+      font-size: .78rem;
+      opacity: .75;
+      margin-top: 3px;
+    }
+
+    /* ── Info Note ── */
+    .note {
+      margin-top: 20px;
+      padding: 12px 16px;
+      background: #fff8e1;
+      border-left: 4px solid var(--gold);
+      border-radius: 0 8px 8px 0;
+      font-size: .82rem;
+      color: #5d4037;
+      line-height: 1.6;
+    }
+
+    /* ── Disclaimer ── */
+    footer {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px;
+      font-size: .78rem;
+      color: var(--text-light);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    footer strong { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="leaf">🌿</div>
+    <h1>CannaButter Calculator</h1>
+    <p>Measure the exact amount of cannabis for your batch of infused butter, based on THC percentage and desired potency.</p>
+  </header>
+
+  <!-- ── CALCULATOR CARD ── -->
+  <div class="card">
+    <div class="tabs" role="tablist">
+      <button class="tab active" id="tab-cannabis" role="tab" onclick="switchMode('cannabis')">
+        🌱 How much cannabis?
+      </button>
+      <button class="tab" id="tab-potency" role="tab" onclick="switchMode('potency')">
+        💊 What potency will I get?
+      </button>
+    </div>
+
+    <!-- Mode A: find cannabis amount -->
+    <div id="mode-cannabis">
+      <div class="form-grid">
+        <div class="field">
+          <label for="thc-a">THC Percentage</label>
+          <div class="input-wrap">
+            <input type="number" id="thc-a" min="0.1" max="100" step="0.1" value="20" aria-label="THC percentage" />
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="butter-a">Butter to Make</label>
+          <div class="input-wrap">
+            <input type="number" id="butter-a" min="0.25" max="20" step="0.25" value="1" aria-label="Cups of butter" />
+            <span class="unit">cups</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="desired-a">Desired Potency</label>
+          <div class="input-wrap">
+            <input type="number" id="desired-a" min="1" max="500" step="1" value="10" aria-label="Desired mg THC per tablespoon" />
+            <span class="unit">mg/tbsp</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Infusion Efficiency</label>
+          <div class="slider-row">
+            <input type="range" id="eff-a" min="40" max="90" step="5" value="60"
+                   oninput="document.getElementById('eff-a-val').textContent=this.value+'%'"
+                   aria-label="Infusion efficiency percentage" />
+            <span class="slider-val" id="eff-a-val">60%</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn" onclick="calcCannabis()">Calculate Cannabis Needed</button>
+    </div>
+
+    <!-- Mode B: find potency -->
+    <div id="mode-potency" style="display:none">
+      <div class="form-grid">
+        <div class="field">
+          <label for="thc-b">THC Percentage</label>
+          <div class="input-wrap">
+            <input type="number" id="thc-b" min="0.1" max="100" step="0.1" value="20" aria-label="THC percentage" />
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="cannabis-b">Cannabis to Use</label>
+          <div class="input-wrap">
+            <input type="number" id="cannabis-b" min="0.1" max="500" step="0.1" value="7" aria-label="Grams of cannabis" />
+            <span class="unit">g</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="butter-b">Butter to Make</label>
+          <div class="input-wrap">
+            <input type="number" id="butter-b" min="0.25" max="20" step="0.25" value="1" aria-label="Cups of butter" />
+            <span class="unit">cups</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Infusion Efficiency</label>
+          <div class="slider-row">
+            <input type="range" id="eff-b" min="40" max="90" step="5" value="60"
+                   oninput="document.getElementById('eff-b-val').textContent=this.value+'%'"
+                   aria-label="Infusion efficiency percentage" />
+            <span class="slider-val" id="eff-b-val">60%</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn" onclick="calcPotency()">Calculate Potency</button>
+    </div>
+  </div>
+
+  <!-- ── RESULTS CARD ── -->
+  <div class="card" id="results">
+    <h2>📊 Results</h2>
+    <div class="result-grid" id="result-grid"></div>
+    <div class="note" id="result-note"></div>
+  </div>
+
+  <footer>
+    <strong>⚠️ Important:</strong> This tool is for informational purposes only. Always comply with your local laws
+    regarding cannabis use. Start with a low dose and wait at least 2 hours before consuming more edibles.
+    Potency estimates are approximations — actual results vary based on strain, decarboxylation time, and infusion method.
+  </footer>
+
+  <script>
+    /* ── Constants ── */
+    const TBSP_PER_CUP  = 16;   // tablespoons in one US cup
+    const TSP_PER_TBSP  = 3;    // teaspoons per tablespoon
+    const G_PER_OZ      = 28.3495;
+    const MG_PER_G      = 1000;
+
+    /* ── Mode Switch ── */
+    function switchMode(mode) {
+      const showCannabis = mode === 'cannabis';
+      document.getElementById('mode-cannabis').style.display = showCannabis ? '' : 'none';
+      document.getElementById('mode-potency').style.display  = showCannabis ? 'none' : '';
+      document.getElementById('tab-cannabis').classList.toggle('active',  showCannabis);
+      document.getElementById('tab-potency').classList.toggle('active',  !showCannabis);
+      document.getElementById('results').style.display = 'none';
+    }
+
+    /* ── Validation helper ── */
+    function getVal(id, min, max) {
+      const el  = document.getElementById(id);
+      const val = parseFloat(el.value);
+      if (isNaN(val) || val < min || val > max) {
+        el.focus();
+        el.style.borderColor = '#e53935';
+        el.title = `Please enter a value between ${min} and ${max}`;
+        return null;
+      }
+      el.style.borderColor = '';
+      el.title = '';
+      return val;
+    }
+
+    /* ── Pluralization helper ── */
+    function plural(n, word) { return n === 1 ? word : word + 's'; }
+
+    function fmt(num, decimals = 1) {
+      return num.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    /* ── Mode A: cannabis needed ── */
+    function calcCannabis() {
+      const thc        = getVal('thc-a',     0.1, 100);
+      const butterCups = getVal('butter-a',  0.25, 20);
+      const mgPerTbsp  = getVal('desired-a', 1,   500);
+      const efficiency = parseInt(document.getElementById('eff-a').value) / 100;
+
+      if (thc === null || butterCups === null || mgPerTbsp === null) return;
+
+      const thcFraction = thc / 100;
+
+      // Total mg THC needed in the finished butter
+      const totalMgNeeded = mgPerTbsp * TBSP_PER_CUP * butterCups;
+
+      // cannabis_g = total_mg_needed / (thc_fraction × mg_per_g × efficiency)
+      const cannabisG  = totalMgNeeded / (thcFraction * MG_PER_G * efficiency);
+      const cannabisOz = cannabisG / G_PER_OZ;
+
+      // What we actually get
+      const totalMgInButter   = cannabisG * thcFraction * MG_PER_G * efficiency;
+      const mgPerTbspActual   = totalMgInButter / (TBSP_PER_CUP * butterCups);
+      const mgPerTspActual    = mgPerTbspActual / TSP_PER_TBSP;
+
+      showResults([
+        { label: 'Cannabis Needed', value: fmt(cannabisG) + ' g', sub: fmt(cannabisOz, 2) + ' oz', highlight: true },
+        { label: 'Total THC in Butter', value: fmt(totalMgInButter, 0) + ' mg', sub: '' },
+        { label: 'THC per Tablespoon', value: fmt(mgPerTbspActual) + ' mg', sub: '' },
+        { label: 'THC per Teaspoon',   value: fmt(mgPerTspActual)  + ' mg', sub: '' },
+      ],
+      `Using <strong>${fmt(cannabisG)} g</strong> of cannabis at <strong>${thc}% THC</strong> with a
+       <strong>${efficiency * 100}% infusion efficiency</strong> will yield approximately
+       <strong>${fmt(mgPerTbspActual)} mg THC per tablespoon</strong> in ${butterCups} ${plural(butterCups, 'cup')} of butter.`
+      );
+    }
+
+    /* ── Mode B: potency from given cannabis ── */
+    function calcPotency() {
+      const thc        = getVal('thc-b',      0.1, 100);
+      const cannabisG  = getVal('cannabis-b', 0.1, 500);
+      const butterCups = getVal('butter-b',   0.25, 20);
+      const efficiency = parseInt(document.getElementById('eff-b').value) / 100;
+
+      if (thc === null || cannabisG === null || butterCups === null) return;
+
+      const thcFraction   = thc / 100;
+      const totalMgRaw    = cannabisG * thcFraction * MG_PER_G;
+      const totalMgButter = totalMgRaw * efficiency;
+      const mgPerTbsp     = totalMgButter / (TBSP_PER_CUP * butterCups);
+      const mgPerTsp      = mgPerTbsp / TSP_PER_TBSP;
+      const cannabisOz    = cannabisG / G_PER_OZ;
+
+      showResults([
+        { label: 'THC per Tablespoon', value: fmt(mgPerTbsp) + ' mg', sub: '', highlight: true },
+        { label: 'THC per Teaspoon',   value: fmt(mgPerTsp)  + ' mg', sub: '' },
+        { label: 'Total THC in Butter', value: fmt(totalMgButter, 0) + ' mg', sub: `from ${fmt(totalMgRaw, 0)} mg raw` },
+        { label: 'Cannabis Used', value: fmt(cannabisG) + ' g', sub: fmt(cannabisOz, 2) + ' oz' },
+      ],
+      `<strong>${cannabisG} g</strong> (${fmt(cannabisOz, 2)} oz) of <strong>${thc}% THC</strong> cannabis infused into
+       <strong>${butterCups} ${plural(butterCups, 'cup')} of butter</strong> at
+       <strong>${efficiency * 100}% efficiency</strong> yields approximately
+       <strong>${fmt(mgPerTbsp)} mg THC per tablespoon</strong>.`
+      );
+    }
+
+    /* ── Render Results ── */
+    function showResults(items, noteHtml) {
+      const grid = document.getElementById('result-grid');
+      grid.innerHTML = items.map(item => `
+        <div class="result-item${item.highlight ? ' highlight' : ''}">
+          <div class="result-label">${item.label}</div>
+          <div class="result-value">${item.value}</div>
+          ${item.sub ? `<div class="result-sub">${item.sub}</div>` : ''}
+        </div>
+      `).join('');
+
+      document.getElementById('result-note').innerHTML = noteHtml;
+
+      const card = document.getElementById('results');
+      card.style.display = 'block';
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /* ── Allow Enter key to trigger calculate ── */
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const modeA = document.getElementById('mode-cannabis').style.display !== 'none';
+      if (modeA) calcCannabis(); else calcPotency();
+    });
+  </script>
+</body>
+</html>
