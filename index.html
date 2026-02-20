@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canna-Butter Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .container {
+      background: #16213e;
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      color: #4ade80;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      background: #0f3460;
+      border: 1px solid #1e4d7b;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus, select:focus {
+      border-color: #4ade80;
+    }
+
+    select option { background: #0f3460; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      background: #4ade80;
+      color: #1a1a2e;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover { background: #22c55e; }
+    button:active { transform: scale(0.98); }
+
+    .results {
+      margin-top: 1.75rem;
+      background: #0f3460;
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: none;
+    }
+
+    .results.visible { display: block; }
+
+    .results h2 {
+      font-size: 1rem;
+      color: #4ade80;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #1e4d7b;
+    }
+
+    .result-item:last-child { border-bottom: none; }
+
+    .result-label { color: #94a3b8; font-size: 0.9rem; }
+    .result-value { color: #f1f5f9; font-weight: 600; }
+
+    .note {
+      margin-top: 1.5rem;
+      font-size: 0.78rem;
+      color: #64748b;
+      text-align: center;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧈 Canna-Butter Calculator</h1>
+    <p class="subtitle">Calculate exact measurements for your infusion</p>
+
+    <div class="form-group">
+      <label for="cannabis">Cannabis amount</label>
+      <div class="row">
+        <input type="number" id="cannabis" min="0.1" step="0.1" value="7" />
+        <select id="cannabisUnit">
+          <option value="g">grams (g)</option>
+          <option value="oz">ounces (oz)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="butter">Butter / oil amount</label>
+      <div class="row">
+        <input type="number" id="butter" min="0.25" step="0.25" value="1" />
+        <select id="butterUnit">
+          <option value="cups">cups</option>
+          <option value="sticks">sticks</option>
+          <option value="g">grams (g)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="thc">Estimated THC % of cannabis</label>
+      <input type="number" id="thc" min="1" max="99" step="0.5" value="15" />
+    </div>
+
+    <div class="form-group">
+      <label for="servings">Servings in final recipe</label>
+      <input type="number" id="servings" min="1" step="1" value="24" />
+    </div>
+
+    <button id="calcBtn" onclick="calculate()">Calculate</button>
+
+    <div class="results" id="results">
+      <h2>Results</h2>
+      <div class="result-item">
+        <span class="result-label">Cannabis (grams)</span>
+        <span class="result-value" id="res-cannabis"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Butter / oil (grams)</span>
+        <span class="result-value" id="res-butter"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Total THC in batch</span>
+        <span class="result-value" id="res-total-thc"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Estimated THC per serving</span>
+        <span class="result-value" id="res-per-serving"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Infusion ratio</span>
+        <span class="result-value" id="res-ratio"></span>
+      </div>
+    </div>
+
+    <p class="note">
+      ⚠️ Potency estimates assume ~70% extraction efficiency and are for
+      informational purposes only. Actual potency may vary. Use responsibly
+      and in accordance with your local laws.
+    </p>
+  </div>
+
+  <script>
+    const BUTTER_UNIT_TO_G = { cups: 227, sticks: 113.4, g: 1 };
+    const CANNABIS_UNIT_TO_G = { g: 1, oz: 28.3495 };
+    const EXTRACTION_EFFICIENCY = 0.70;
+
+    function calculate() {
+      const cannabisRaw = parseFloat(document.getElementById('cannabis').value);
+      const cannabisUnit = document.getElementById('cannabisUnit').value;
+      const butterRaw = parseFloat(document.getElementById('butter').value);
+      const butterUnit = document.getElementById('butterUnit').value;
+      const thcPct = parseFloat(document.getElementById('thc').value);
+      const servings = parseInt(document.getElementById('servings').value, 10);
+
+      if (isNaN(cannabisRaw) || cannabisRaw <= 0 ||
+          isNaN(butterRaw)   || butterRaw <= 0  ||
+          isNaN(thcPct)      || thcPct <= 0     ||
+          isNaN(servings)    || servings < 1) return;
+
+      const cannabisG = cannabisRaw * CANNABIS_UNIT_TO_G[cannabisUnit];
+      const butterG = butterRaw * BUTTER_UNIT_TO_G[butterUnit];
+
+      // THC: 1g cannabis = 1000 mg; thcPct% of that is THC; extraction efficiency applied
+      const totalThcMg = cannabisG * 1000 * (thcPct / 100) * EXTRACTION_EFFICIENCY;
+      const thcPerServing = totalThcMg / servings;
+      const ratio = (butterG / cannabisG).toFixed(2);
+
+      document.getElementById('res-cannabis').textContent = cannabisG.toFixed(2) + ' g';
+      document.getElementById('res-butter').textContent = butterG.toFixed(2) + ' g';
+      document.getElementById('res-total-thc').textContent = totalThcMg.toFixed(1) + ' mg';
+      document.getElementById('res-per-serving').textContent = thcPerServing.toFixed(1) + ' mg';
+      document.getElementById('res-ratio').textContent = ratio + ' g butter / g cannabis';
+
+      document.getElementById('results').classList.add('visible');
+    }
+
+    // Auto-calculate on load with defaults
+    calculate();
+  </script>
+</body>
+</html>
